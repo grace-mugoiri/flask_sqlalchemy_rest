@@ -1,3 +1,4 @@
+from crypt import methods
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -48,6 +49,45 @@ def add_product():
     db.session.commit()
 
     return product_schema.jsonify(new_product)
+
+# get all products 
+@app.route('/product', methods=["GET"])
+def get_products():
+    all_products = Product.query.all()
+    result = products_schema.dump(all_products)
+    return jsonify(result)
+
+# get a single product 
+@app.route('/product/<id>', methods=["GET"])
+def single_product(id):
+    product = Product.query.get(id)
+    return product_schema.jsonify(product)
+
+@app.route('/product/<id>', methods=["PUT"])
+def update_product(id):
+    product = Product.query.get(id)
+
+    name = request.json["name"]
+    description = request.json["description"]
+    price = request.json["price"]
+    qnty = request.json["qnty"]
+
+    product.name = name
+    product.description = description
+    product.price = price
+    product.qnty = qnty
+    
+    db.session.commit()
+
+    return product_schema.jsonify(product)
+
+# delete product
+@app.route('/product/<id>', methods=["DELETE"])
+def delete_product(id):
+    product = Product.query.get(id)
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify(product)
 
 if __name__ == "__main__":
     app.run(debug=True)
